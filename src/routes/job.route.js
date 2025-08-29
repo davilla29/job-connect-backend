@@ -14,10 +14,10 @@ import {
 
 const router = express.Router();
 
-router.get("/", verifyToken, getAllJobs);
+router.get("/", getAllJobs);
 router.get("/posted-jobs", verifyToken, isCompany, getPostedJobs);
 router.post("/", verifyToken, isCompany, createJob);
-router.get("/:id", verifyToken, getJobsById);
+router.get("/:id", getJobsById);
 router.put("/:id", verifyToken, isCompany, updateJob);
 router.delete("/:id", verifyToken, isCompany, deleteJob);
 

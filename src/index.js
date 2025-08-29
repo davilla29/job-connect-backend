@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import { connectDB } from "./config/connectDB.js";
 import authRoutes from "./routes/auth.route.js";
@@ -12,6 +13,18 @@ import companyRoutes from "./routes/company.route.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5005;
+
+const allowedOrigins = [
+  "http://localhost:5173", // for local development
+  "https://jobconnect-beige.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // allow cookies (e.g. JWT via cookie)
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());

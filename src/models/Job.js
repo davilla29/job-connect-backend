@@ -33,6 +33,10 @@ const jobSchema = new mongoose.Schema(
       type: Boolean,
       default: true, // true means job is open for applications
     },
+    picture: {
+      type: String, // Added a field for the job's picture (e.g., company logo)
+      required: false,
+    },
   },
   { timestamps: true }
 );

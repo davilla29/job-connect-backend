@@ -120,6 +120,7 @@ export const login = async (req, res) => {
         password: undefined,
       },
     });
+    console.log(user);
   } catch (error) {
     console.log("Error in login ", error);
     res.status(400).json({ success: false, message: error.message });
@@ -137,8 +138,12 @@ export const logout = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
   try {
-    // To check if a user is authenticated by retrieving their data from the database (excluding the password)
-    const user = await Applicant.findById(req.userId).select("-password");
+    let user = await Applicant.findById(req.userId).select("-password");
+
+    if (!user) {
+      user = await Company.findById(req.userId).select("-password");
+    }
+
     if (!user) {
       return res
         .status(400)

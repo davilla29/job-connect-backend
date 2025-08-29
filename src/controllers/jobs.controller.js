@@ -211,9 +211,21 @@ export const getAllJobs = async (req, res) => {
     if (type) filter.type = type;
     if (location) filter.location = location;
     if (availability) filter.availability = availability;
+    // if (availability !== undefined) {
+    //   filter.availability = availability;
+    // } else {
+    //   filter.availability = true;
+    // }
+
     if (workMode) filter.workMode = workMode;
     if (title) filter.title = { $regex: title, $options: "i" }; // case-insensitive partial match
     if (resumeRequired) filter.resumeRequired = resumeRequired;
+
+    if (req.query.minSalary || req.query.maxSalary) {
+      filter.salary = {};
+      if (req.query.minSalary) filter.salary.$gte = Number(req.query.minSalary);
+      if (req.query.maxSalary) filter.salary.$lte = Number(req.query.maxSalary);
+    }
 
     const skip = (Number(page) - 1) * Number(limit);
 
