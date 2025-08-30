@@ -17,6 +17,7 @@ const applicantSchema = new mongoose.Schema(
           this.fName || "User"
         }&background=random`;
       },
+      // Gb2yXsbCtPm8zIKc
     },
 
     role: { type: String, default: "applicant" },
