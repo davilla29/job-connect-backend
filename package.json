@@ -4,7 +4,8 @@
   "description": "Backend API for Job Connect platform, providing job listings, applications, and user management features.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "keywords": [
     "backend",
