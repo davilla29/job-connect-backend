@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5005;
 
 const allowedOrigins = [
   "http://localhost:5173", // for local development
-  "https://jobconnect-beige.vercel.app",
+  "https://jobconnect-beige.vercel.app/",
 ];
 
 app.use(
