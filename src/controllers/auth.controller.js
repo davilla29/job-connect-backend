@@ -7,6 +7,8 @@ import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js
 const DUMMY_PASSWORD_HASH =
   "$2a$10$CwTycUXWue0Thq9StjUM0uJ8axFzjcxgXmjKPqExE7hFl/jfD2N.G";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const signup = async (req, res) => {
   // const { fName, lName, email, password, role } = req.body;
   const { role, email, password, fName, lName, cName } = req.body;
@@ -130,8 +132,8 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "None",
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "Lax",
   });
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
