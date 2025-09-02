@@ -14,23 +14,34 @@ export const signup = async (req, res) => {
   const { role, email, password, fName, lName, cName } = req.body;
 
   try {
-    // Check if email exists in Applicant or Company collections
-    let emailAlreadyExists = null;
-    if (role === "applicant") {
-      emailAlreadyExists = await Applicant.findOne({ email });
-    } else if (role === "company") {
-      emailAlreadyExists = await Company.findOne({ email });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Role not provided" });
+    // Check if email exists in either Applicant or Company collections
+    const applicantExists = await Applicant.findOne({ email });
+    const companyExists = await Company.findOne({ email });
+
+    if (applicantExists || companyExists) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists with this email",
+      });
     }
 
-    if (emailAlreadyExists) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
-    }
+    // // Check if email exists in Applicant or Company collections
+    // let emailAlreadyExists = null;
+    // if (role === "applicant") {
+    //   emailAlreadyExists = await Applicant.findOne({ email });
+    // } else if (role === "company") {
+    //   emailAlreadyExists = await Company.findOne({ email });
+    // } else {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Role not provided" });
+    // }
+
+    // if (emailAlreadyExists) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "User already exists" });
+    // }
 
     // Hashing the password
     const hashedPassword = await bcryptjs.hash(password, 10);
