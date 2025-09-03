@@ -1,6 +1,6 @@
 import { Application } from "../models/Application.js";
 import { Job } from "../models/Job.js";
-import { Applicant } from "../models/Applicant.js"; 
+import { Applicant } from "../models/Applicant.js";
 
 export const applyJob = async (req, res) => {
   try {
@@ -240,7 +240,7 @@ export const updateApplicationStatus = async (req, res) => {
     }
 
     // Check if logged in company owns posted the job
-    if (owner.postedBy.toString() !== loggedInCompany.toString()) {
+    if (owner.toString() !== loggedInCompany.toString()) {
       return res.status(403).json({
         success: false,
         message: "You are not allowed to update this application",

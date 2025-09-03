@@ -6,10 +6,12 @@ export const createJob = async (req, res) => {
       title,
       location,
       type,
+      workMode,
       description,
       salary,
       resumeRequired,
       availability,
+      
     } = req.body;
 
     if (!title || !location || !description || !salary) {
@@ -22,6 +24,7 @@ export const createJob = async (req, res) => {
       title,
       company: req.user.cName,
       postedBy: req.userId,
+      picture:req.user.profilePictureURL,
       location,
       type,
       workMode,
