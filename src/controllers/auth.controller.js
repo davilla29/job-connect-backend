@@ -49,7 +49,7 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcryptjs.hash(password, 10);
 
     // OTP
-    const verificationToken = generateVerificationToken();
+    const verificationToken = generateVerificationCode();
     const hashedVerificationToken = await bcryptjs.hash(verificationToken, 10);
 
     // Creating new user based on role provided
