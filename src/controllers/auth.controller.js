@@ -231,10 +231,12 @@ export const login = async (req, res) => {
   try {
     // Try to find the user in Applicant collection first
     let user = await Applicant.findOne({ email });
+    let userType = "applicant";
 
     // If not found, try Company collection
     if (!user) {
       user = await Company.findOne({ email });
+      userType = "company";
     }
 
     // If user still not found, do dummy compare and return error
@@ -274,9 +276,11 @@ export const login = async (req, res) => {
 
       // Send verification code
       try {
+        const displayName =
+          userType === "applicant" ? `${user.fName} ${user.lName}` : user.cName;
         await sendVerificationEmail(
           user.email,
-          role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
+          displayName,
           verificationToken
         );
       } catch (error) {
