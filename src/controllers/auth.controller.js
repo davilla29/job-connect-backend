@@ -3,6 +3,8 @@ import { Company } from "../models/Company.js";
 import bcryptjs from "bcryptjs";
 
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { generateVerificationCode } from "../utils/generateVerificationCode.js";
+import { sendVerificationEmail } from "../mail/emailService.js";
 
 const DUMMY_PASSWORD_HASH =
   "$2a$10$CwTycUXWue0Thq9StjUM0uJ8axFzjcxgXmjKPqExE7hFl/jfD2N.G";
@@ -46,6 +48,10 @@ export const signup = async (req, res) => {
     // Hashing the password
     const hashedPassword = await bcryptjs.hash(password, 10);
 
+    // OTP
+    const verificationToken = generateVerificationToken();
+    const hashedVerificationToken = await bcryptjs.hash(verificationToken, 10);
+
     // Creating new user based on role provided
     let newUser;
 
@@ -62,6 +68,8 @@ export const signup = async (req, res) => {
         email,
         password: hashedPassword,
         role,
+        verificationToken: hashedVerificationToken,
+        verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // Expires in 24 hours
       });
     } else if (role === "company") {
       if (!cName) {
@@ -75,11 +83,25 @@ export const signup = async (req, res) => {
         email,
         password: hashedPassword,
         role,
+        verificationToken: hashedVerificationToken,
+        verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // Expires in 24 hours
       });
     }
 
     // Saving to the database
     await newUser.save();
+
+    try {
+      await sendVerificationEmail(
+        newUser.email,
+        role === "applicant"
+          ? `${newUser.fName} ${newUser.lName}`
+          : newUser.cName,
+        verificationToken
+      );
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
 
     res.status(201).json({
       success: true,
@@ -87,10 +109,119 @@ export const signup = async (req, res) => {
       user: {
         ...newUser._doc,
         password: undefined,
+        verificationToken: undefined,
       },
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  // const { code } = req.body;
+  const { code, email } = req.body;
+
+  try {
+    const applicantUser = await Applicant.findOne({
+      email,
+      verificationTokenExpiresAt: { $gt: Date.now() },
+    });
+    const companyUser = await Company.findOne({
+      email,
+      verificationTokenExpiresAt: { $gt: Date.now() },
+    });
+
+    if (!applicantUser && !companyUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found or token expired",
+      });
+    }
+
+    const user = applicantUser || companyUser;
+
+    const isTokenValid = await bcryptjs.compare(code, user.verificationToken);
+
+    if (!isTokenValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+
+    // // await sendWelcomeEmail(user.email, user.name);
+    // try {
+    //   await sendWelcomeEmail(user.email, user.name);
+    // } catch (error) {
+    //   console.error("Failed to send welcome email:", error);
+    // }
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (error) {
+    console.log("error in verifyEmail ", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const resendCode = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  try {
+    const applicantUser = await Applicant.findOne({ email });
+    const companyUser = await Company.findOne({ email });
+    if (!applicantUser || !companyUser)
+      return res.status(404).json({ message: "User not found" });
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "Email is already verified" });
+    }
+
+    // Generate and hash new token
+    const verificationToken = generateVerificationCode();
+    const hashedVerificationToken = await bcryptjs.hash(verificationToken, 10);
+
+    console.log(verificationToken);
+
+    // // Send email
+    // try {
+    //   await sendVerificationEmail(user.email, user.name, verificationToken);
+    // } catch (error) {
+    //   console.error("Failed to send verification email:", error);
+    // }
+
+    try {
+      await sendVerificationEmail(
+        user.email,
+        role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
+        verificationToken
+      );
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
+
+    // Save token and expiry to user
+    user.verificationToken = hashedVerificationToken;
+    user.verificationTokenExpiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    res.status(200).json({ message: "Verification code resent successfully" });
+  } catch (error) {
+    console.error("Resend error:", error);
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
@@ -122,6 +253,43 @@ export const login = async (req, res) => {
         .json({ success: false, message: "Invalid email or password" });
     }
 
+    // To check if the user is verified
+    if (!user.isVerified) {
+      // // Generate a new code
+      // const rawToken = crypto.randomBytes(3).toString("hex"); // 6-digit code
+      // const hashedToken = await bcryptjs.hash(rawToken, 10);
+
+      // To generate a new OTP and hash it before storing in the database
+      const verificationToken = generateVerificationCode();
+      const hashedVerificationToken = await bcryptjs.hash(
+        verificationToken,
+        10
+      );
+
+      user.verificationToken = hashedVerificationToken;
+      user.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+      await user.save();
+
+      console.log(verificationToken);
+
+      // Send verification code
+      try {
+        await sendVerificationEmail(
+          user.email,
+          role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
+          verificationToken
+        );
+      } catch (error) {
+        console.error("Failed to send verification email:", error);
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: "Email not verified. Verification code sent to your email.",
+        needVerification: true,
+      });
+    }
+
     generateTokenAndSetCookie(res, user._id);
     // await user.save();
 
@@ -131,6 +299,7 @@ export const login = async (req, res) => {
       user: {
         ...user._doc,
         password: undefined,
+        isVerified: user.isVerified,
       },
     });
     console.log(user);

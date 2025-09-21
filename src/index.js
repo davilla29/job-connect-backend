@@ -15,14 +15,14 @@ const app = express();
 const PORT = process.env.PORT || 5005;
 
 const allowedOrigins = [
-  "http://localhost:5173", // for local development
+  "http://localhost:5173",
   "https://jobconnect-beige.vercel.app",
 ];
 
 app.use(
   cors({
     origin: allowedOrigins,
-    credentials: true, 
+    credentials: true,
   })
 );
 

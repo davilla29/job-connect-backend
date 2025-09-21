@@ -17,6 +17,13 @@ const companySchema = new mongoose.Schema(
       },
     },
     role: { type: String, default: "company" },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationToken: String,
+    verificationTokenExpiresAt: Date,
   },
   { timestamps: true }
 );
