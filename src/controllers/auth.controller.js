@@ -4,6 +4,7 @@ import bcryptjs from "bcryptjs";
 
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
+import { sendVerificationEmail } from "../mail/emailService.js";
 
 const DUMMY_PASSWORD_HASH =
   "$2a$10$CwTycUXWue0Thq9StjUM0uJ8axFzjcxgXmjKPqExE7hFl/jfD2N.G";
@@ -90,6 +91,18 @@ export const signup = async (req, res) => {
     // Saving to the database
     await newUser.save();
 
+    try {
+      await sendVerificationEmail(
+        newUser.email,
+        role === "applicant"
+          ? `${newUser.fName} ${newUser.lName}`
+          : newUser.cName,
+        verificationToken
+      );
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -118,23 +131,18 @@ export const verifyEmail = async (req, res) => {
       verificationTokenExpiresAt: { $gt: Date.now() },
     });
 
-    if (!applicantUser || !companyUser) {
+    if (!applicantUser && !companyUser) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired token.",
+        message: "User not found or token expired",
       });
     }
 
-    const isApplicantTokenValid = await bcryptjs.compare(
-      code,
-      user.verificationToken
-    );
-    const isCompanyTokenValid = await bcryptjs.compare(
-      code,
-      user.verificationToken
-    );
+    const user = applicantUser || companyUser;
 
-    if (!isApplicantTokenValid || isCompanyTokenValid) {
+    const isTokenValid = await bcryptjs.compare(code, user.verificationToken);
+
+    if (!isTokenValid) {
       return res.status(400).json({
         success: false,
         message: "Invalid or expired token",
@@ -194,6 +202,16 @@ export const resendCode = async (req, res) => {
     // } catch (error) {
     //   console.error("Failed to send verification email:", error);
     // }
+
+    try {
+      await sendVerificationEmail(
+        user.email,
+        role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
+        verificationToken
+      );
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
 
     // Save token and expiry to user
     user.verificationToken = hashedVerificationToken;
@@ -256,12 +274,16 @@ export const login = async (req, res) => {
 
       // Send verification code
       try {
-        await sendVerificationEmail(user.email, user.name, verificationToken);
+        await sendVerificationEmail(
+          user.email,
+          role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
+          verificationToken
+        );
       } catch (error) {
         console.error("Failed to send verification email:", error);
       }
 
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: "Email not verified. Verification code sent to your email.",
         needVerification: true,
@@ -277,6 +299,7 @@ export const login = async (req, res) => {
       user: {
         ...user._doc,
         password: undefined,
+        isVerified: user.isVerified,
       },
     });
     console.log(user);
