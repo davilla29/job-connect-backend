@@ -9,6 +9,7 @@ import jobRoutes from "./routes/job.route.js";
 import applicationRoutes from "./routes/applications.route.js";
 import applicantRoutes from "./routes/applicant.route.js";
 import companyRoutes from "./routes/company.route.js";
+import exportRoutes from "./routes/export.route.js";
 
 dotenv.config();
 const app = express();
@@ -36,6 +37,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/applicant", applicantRoutes);
 app.use("/api/company", companyRoutes);
+app.use("/api/export", exportRoutes);
 
 // To handle 404 API requests
 app.use((req, res, next) => {
