@@ -21,6 +21,10 @@ const applicantSchema = new mongoose.Schema(
     },
 
     role: { type: String, default: "applicant" },
+    isWelcomeEmailSent: {
+      type: Boolean,
+      default: false,
+    },
     resumeLink: {
       type: String,
       required: false,

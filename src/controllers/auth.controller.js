@@ -4,7 +4,10 @@ import bcryptjs from "bcryptjs";
 
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
-import { sendVerificationEmail } from "../mail/emailService.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../mail/emailService.js";
 
 const DUMMY_PASSWORD_HASH =
   "$2a$10$CwTycUXWue0Thq9StjUM0uJ8axFzjcxgXmjKPqExE7hFl/jfD2N.G";
@@ -154,12 +157,15 @@ export const verifyEmail = async (req, res) => {
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 
-    // // await sendWelcomeEmail(user.email, user.name);
-    // try {
-    //   await sendWelcomeEmail(user.email, user.name);
-    // } catch (error) {
-    //   console.error("Failed to send welcome email:", error);
-    // }
+    // Sending welcome email
+    try {
+      await sendWelcomeEmail(
+        user.email,
+        user.role === "applicant" ? `${user.fName} ${user.lName}` : user.cName
+      );
+    } catch (error) {
+      console.error("Failed to send welcome email:", error);
+    }
 
     res.status(200).json({
       success: true,
@@ -167,6 +173,8 @@ export const verifyEmail = async (req, res) => {
       user: {
         ...user._doc,
         password: undefined,
+        isVerified: user.isVerified,
+        isWelcomeEmailSent: user.isWelcomeEmailSent,
       },
     });
   } catch (error) {
@@ -278,11 +286,7 @@ export const login = async (req, res) => {
       try {
         const displayName =
           userType === "applicant" ? `${user.fName} ${user.lName}` : user.cName;
-        await sendVerificationEmail(
-          user.email,
-          displayName,
-          verificationToken
-        );
+        await sendVerificationEmail(user.email, displayName, verificationToken);
       } catch (error) {
         console.error("Failed to send verification email:", error);
       }
@@ -292,6 +296,20 @@ export const login = async (req, res) => {
         message: "Email not verified. Verification code sent to your email.",
         needVerification: true,
       });
+    }
+
+    // To check if welcome email has been sent
+    if (!user.isWelcomeEmailSent) {
+      try {
+        await sendWelcomeEmail(
+          user.email,
+          userType === "applicant" ? `${user.fName} ${user.lName}` : user.cName
+        );
+        user.isWelcomeEmailSent = true;
+        await user.save();
+      } catch (error) {
+        console.error("Failed to send welcome email:", error);
+      }
     }
 
     generateTokenAndSetCookie(res, user._id);
@@ -304,6 +322,7 @@ export const login = async (req, res) => {
         ...user._doc,
         password: undefined,
         isVerified: user.isVerified,
+        isWelcomeEmailSent: user.isWelcomeEmailSent,
       },
     });
     console.log(user);

@@ -59,3 +59,68 @@ export const VERIFICATION_EMAIL_TEMPLATE = `
 </body>
 </html>
 `;
+
+export const WELCOME_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome to JobConnect!</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f4f4f5;">
+
+  <!-- Header / Logo -->
+  <div style="background: linear-gradient(to right, #3b82f6, #2563eb); padding: 30px; text-align: center;">
+    <img src="https://img.icons8.com/ios-filled/100/ffffff/briefcase.png" 
+         alt="JobConnect Logo" width="50" height="50" style="display:block; margin:0 auto 10px;" />
+    <h1 style="color: white; margin: 0; font-size: 1.8rem; font-weight: bold;">
+      JobConnect
+    </h1>
+    <p style="color: #e0e7ff; margin-top: 5px; font-size: 0.95rem;">
+      Connecting Talent with Opportunity
+    </p>
+  </div>
+
+  <!-- Body -->
+  <div style="background-color: #ffffff; max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="color: #1f2937; margin-top: 0;">Welcome to JobConnect!</h2>
+    <p style="color: #374151; font-size: 0.95rem;">Hello, <strong>{userName}</strong> 👋</p>
+    <p style="color: #374151; font-size: 0.95rem;">
+      We're thrilled to have you join our community! JobConnect is all about connecting talented individuals like you with amazing opportunities.
+    </p>
+
+    <!-- Introduction / Highlights -->
+    <ul style="color: #374151; font-size: 0.95rem; padding-left: 20px;">
+      <li>Showcase your skills and experience on your profile.</li>
+      <li>Explore curated job opportunities tailored to you.</li>
+      <li>Stay updated with our latest blog articles and resources.</li>
+    </ul>
+
+    <!-- Portfolio / CTA -->
+    <div style="text-align:center; margin: 30px 0;">
+      <a href="https://bolarinwadavid.vercel.app/" 
+         style="background: linear-gradient(to right, #3b82f6, #2563eb); color:#ffffff; text-decoration:none; font-weight:600; padding:12px 24px; border-radius:8px; display:inline-block; font-size:0.95rem;">
+        View My Portfolio
+      </a>
+    </div>
+
+    <p style="color: #374151; font-size: 0.9rem;">
+      We encourage you to explore, connect, and grow. Your journey starts here!
+    </p>
+
+    <p style="margin-top: 30px; color:#374151; font-size:0.9rem;">
+      Best regards,<br/>
+      <strong>Bolarinwa David</strong><br/>
+      JobConnect Team<br/>
+      Connecting Talent with Opportunity
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 0.75rem;">
+    <p>This is an automated message from JobConnect. Please do not reply.</p>
+  </div>
+</body>
+</html>
+`;

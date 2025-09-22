@@ -17,6 +17,10 @@ const companySchema = new mongoose.Schema(
       },
     },
     role: { type: String, default: "company" },
+    isWelcomeEmailSent: {
+      type: Boolean,
+      default: false,
+    },
     isVerified: {
       type: Boolean,
       default: false,
