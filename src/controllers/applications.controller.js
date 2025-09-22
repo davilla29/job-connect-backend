@@ -167,7 +167,7 @@ export const getApplicationsForJob = async (req, res) => {
 
     const [applications, total] = await Promise.all([
       Application.find(filter)
-        .populate("applicant", "name email")
+        .populate("applicant", "fName lName email")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
