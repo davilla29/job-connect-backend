@@ -31,4 +31,3 @@ libxss1
 libxtst6
 ca-certificates
 fonts-liberation
-
