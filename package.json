@@ -7,7 +7,7 @@
     "test": "jest",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "postinstall": "npx playwright install"
+    "postinstall": "npx playwright install chromium"
   },
   "keywords": [
     "backend",
