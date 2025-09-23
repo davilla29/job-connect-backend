@@ -87,7 +87,7 @@ export const signup = async (req, res) => {
         password: hashedPassword,
         role,
         verificationToken: hashedVerificationToken,
-        verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // Expires in 24 hours
+        verificationTokenExpiresAt: Date.now() + 15 * 60 * 1000, // Expires in 15 minutes
       });
     }
 
@@ -189,28 +189,37 @@ export const resendCode = async (req, res) => {
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
+    let user;
+    let role;
+
     const applicantUser = await Applicant.findOne({ email });
     const companyUser = await Company.findOne({ email });
-    if (!applicantUser || !companyUser)
-      return res.status(404).json({ message: "User not found" });
 
-    if (user.isVerified) {
-      return res.status(400).json({ message: "Email is already verified" });
+    if (!applicantUser && !companyUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (applicantUser) {
+      if (applicantUser.isVerified) {
+        return res.status(400).json({ message: "Email is already verified" });
+      }
+      user = applicantUser;
+      role = "applicant";
+    } else if (companyUser) {
+      if (companyUser.isVerified) {
+        return res.status(400).json({ message: "Email is already verified" });
+      }
+      user = companyUser;
+      role = "company";
     }
 
     // Generate and hash new token
     const verificationToken = generateVerificationCode();
     const hashedVerificationToken = await bcryptjs.hash(verificationToken, 10);
 
-    console.log(verificationToken);
+    console.log("Verification code:", verificationToken);
 
-    // // Send email
-    // try {
-    //   await sendVerificationEmail(user.email, user.name, verificationToken);
-    // } catch (error) {
-    //   console.error("Failed to send verification email:", error);
-    // }
-
+    // Send email
     try {
       await sendVerificationEmail(
         user.email,
@@ -219,11 +228,12 @@ export const resendCode = async (req, res) => {
       );
     } catch (error) {
       console.error("Failed to send verification email:", error);
+      return res.status(500).json({ message: "Failed to send email" });
     }
 
     // Save token and expiry to user
     user.verificationToken = hashedVerificationToken;
-    user.verificationTokenExpiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+    user.verificationTokenExpiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
     await user.save();
 
     res.status(200).json({ message: "Verification code resent successfully" });
