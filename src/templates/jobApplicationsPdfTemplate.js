@@ -149,8 +149,7 @@ export const JOB_APPLICATIONS_PDF_TEMPLATE = (
     </table>
   </div>
   <footer>
-    Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
-      Generated on ${formattedDate} at ${formattedTime}
+    <strong> Generated on ${formattedDate} at ${formattedTime} </strong>
   </footer>
 </body>
 </html>

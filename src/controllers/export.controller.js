@@ -29,7 +29,7 @@ export const exportJobApplications = async (req, res) => {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-      hour12: false, // use 24-hour clock
+      hour12: true, // use 24-hour clock
     });
 
     // Build PDF
