@@ -16,8 +16,29 @@ export const exportJobApplications = async (req, res) => {
       .populate("applicant", "fName lName email")
       .sort({ createdAt: -1 });
 
+    // ✅ Get user locale from query OR fallback
+    const userLocale = req.query.locale || "en-GB";
+
+    // ✅ Format date & time based on userLocale
+    const formattedDate = new Date().toLocaleDateString(userLocale, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const formattedTime = new Date().toLocaleTimeString(userLocale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false, // use 24-hour clock
+    });
+
     // Build PDF
-    const html = JOB_APPLICATIONS_PDF_TEMPLATE(job, applicants);
+    const html = JOB_APPLICATIONS_PDF_TEMPLATE(
+      job,
+      applicants,
+      formattedDate,
+      formattedTime
+    );
     const pdfBuffer = await generatePDF(html);
 
     res.contentType("application/pdf");

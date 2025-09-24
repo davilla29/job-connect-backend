@@ -1,4 +1,9 @@
-export const JOB_APPLICATIONS_PDF_TEMPLATE = (job, applicants) => `
+export const JOB_APPLICATIONS_PDF_TEMPLATE = (
+  job,
+  applicants,
+  formattedDate,
+  formattedTime
+) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,6 +150,7 @@ export const JOB_APPLICATIONS_PDF_TEMPLATE = (job, applicants) => `
   </div>
   <footer>
     Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+      Generated on ${formattedDate} at ${formattedTime}
   </footer>
 </body>
 </html>
