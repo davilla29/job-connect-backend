@@ -1,12 +1,15 @@
 import { Applicant } from "../models/Applicant.js";
 import { Company } from "../models/Company.js";
 import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
 } from "../mail/emailService.js";
 
 const DUMMY_PASSWORD_HASH =
@@ -349,6 +352,117 @@ export const logout = async (req, res) => {
     sameSite: isProduction ? "None" : "Lax",
   });
   res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+  try {
+    let user;
+
+    const applicantUser = await Applicant.findOne({ email });
+    const companyUser = await Company.findOne({ email });
+
+    if (!applicantUser && !companyUser) {
+      return res.status(200).json({
+        success: true,
+        message: "If that email exists, a reset link has been sent.",
+      });
+    }
+    // Pick whichever user exists
+    user = applicantUser || companyUser;
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    const resetTokenExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store the generated token in hashed version to the database
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
+
+    await user.save();
+
+    // send email with the link in it
+    try {
+      await sendPasswordResetEmail(
+        user.email,
+        `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+      );
+    } catch (error) {
+      console.log(error);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "If that email exists, a reset link has been sent.",
+    });
+  } catch (error) {
+    console.log("Error in forgotPassword ", error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Password is required" });
+  }
+
+  try {
+    // Hash the token from URL
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    console.log("Raw token:", token);
+    console.log("Hashed token:", hashedToken);
+
+    // Search both models for user with valid token
+    let user =
+      (await Applicant.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpiresAt: { $gt: Date.now() },
+      })) ||
+      (await Company.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpiresAt: { $gt: Date.now() },
+      }));
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset tokenn",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
+    // Update and clear reset fields
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
+    user.passwordChangedAt = Date.now();
+
+    await user.save();
+
+    // Send success email
+    await sendResetSuccessEmail(user.email);
+
+    res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.log("Error in resetPassword:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 export const checkAuth = async (req, res) => {
