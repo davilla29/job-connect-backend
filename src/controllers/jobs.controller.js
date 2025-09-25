@@ -1,4 +1,5 @@
 import { Job } from "../models/Job.js";
+import { Application } from "../models/Application.js";
 
 export const createJob = async (req, res) => {
   try {
@@ -11,7 +12,6 @@ export const createJob = async (req, res) => {
       salary,
       resumeRequired,
       availability,
-      
     } = req.body;
 
     if (!title || !location || !description || !salary) {
@@ -24,7 +24,7 @@ export const createJob = async (req, res) => {
       title,
       company: req.user.cName,
       postedBy: req.userId,
-      picture:req.user.profilePictureURL,
+      picture: req.user.profilePictureURL,
       location,
       type,
       workMode,
@@ -145,11 +145,20 @@ export const getPostedJobs = async (req, res) => {
     const jobs = await Job.find(filter)
       .sort({ createdAt: -1 }) // newest first
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean();
+
+    // Add applications count
+    const jobsWithAppCounts = await Promise.all(
+      jobs.map(async (job) => {
+        const count = await Application.countDocuments({ job: job._id });
+        return { ...job, applicationsCount: count };
+      })
+    );
 
     res.status(200).json({
       success: true,
-      jobs,
+      jobs: jobsWithAppCounts,
       page: pageNum,
       limit: limitNum,
       total,
