@@ -229,9 +229,21 @@ export const resendCode = async (req, res) => {
         role === "applicant" ? `${user.fName} ${user.lName}` : user.cName,
         verificationToken
       );
+
+      // Only return success if email actually sent
+      return res.status(200).json({
+        success: true,
+        message: "If that email exists, a reset link has been sent.",
+      });
     } catch (error) {
       console.error("Failed to send verification email:", error);
-      return res.status(500).json({ message: "Failed to send email" });
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to send email",
+          error: error.message,
+        });
     }
 
     // Save token and expiry to user
@@ -239,10 +251,10 @@ export const resendCode = async (req, res) => {
     user.verificationTokenExpiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
     await user.save();
 
-    res.status(200).json({ message: "Verification code resent successfully" });
+    // res.status(200).json({ message: "Verification code resent successfully" });
   } catch (error) {
     console.error("Resend error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 
