@@ -431,8 +431,8 @@ export const resetPassword = async (req, res) => {
   try {
     // Hash the token from URL
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-    console.log("Raw token:", token);
-    console.log("Hashed token:", hashedToken);
+    // console.log("Raw token:", token);
+    // console.log("Hashed token:", hashedToken);
 
     // Search both models for user with valid token
     let user =
