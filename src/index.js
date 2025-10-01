@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import net from "net";
 
 import { connectDB } from "./config/connectDB.js";
 import authRoutes from "./routes/auth.route.js";
@@ -38,6 +39,21 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/applicant", applicantRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/export", exportRoutes);
+
+// 🛠 Debug route (temporary)
+app.get("/test-smtp", (req, res) => {
+  const client = net.createConnection(
+    { host: "smtp.gmail.com", port: 587 },
+    () => {
+      res.send("✅ Connection to Gmail SMTP successful!");
+      client.end();
+    }
+  );
+
+  client.on("error", (err) => {
+    res.send("❌ Connection failed: " + err.message);
+  });
+});
 
 // To handle 404 API requests
 app.use((req, res, next) => {
