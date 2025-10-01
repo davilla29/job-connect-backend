@@ -233,17 +233,16 @@ export const resendCode = async (req, res) => {
       // Only return success if email actually sent
       return res.status(200).json({
         success: true,
-        message: "If that email exists, a reset link has been sent.",
+        message:
+          "Email has been sent. Please check your inbox and spam folder.",
       });
     } catch (error) {
       console.error("Failed to send verification email:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to send email",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send email",
+        error: error.message,
+      });
     }
 
     // Save token and expiry to user
@@ -318,7 +317,8 @@ export const login = async (req, res) => {
 
       return res.status(403).json({
         success: false,
-        message: "Email not verified. Verification code sent to your email.",
+        message:
+          "Email not verified. Check your email or spam folder for the verification code.",
         needVerification: true,
       });
     }
@@ -409,7 +409,8 @@ export const forgotPassword = async (req, res) => {
       // Only return success if email actually sent
       return res.status(200).json({
         success: true,
-        message: "If that email exists, a reset link has been sent.",
+        message:
+          "If that email exists, a reset link has been sent. Check your inbox or spam folder.",
       });
     } catch (error) {
       console.error("Password reset email error:", error);
@@ -419,11 +420,6 @@ export const forgotPassword = async (req, res) => {
         error: error.message, // optional
       });
     }
-
-    res.status(200).json({
-      success: true,
-      message: "If that email exists, a reset link has been sent.",
-    });
   } catch (error) {
     console.log("Error in forgotPassword ", error);
     res.status(400).json({ success: false, message: error.message });
