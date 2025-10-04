@@ -277,3 +277,34 @@ export const getAllJobs = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const updateJobAvailability = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { availability } = req.body;
+
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    if (job.postedBy.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You cannot update this job",
+      });
+    }
+
+    job.availability = availability;
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Job marked as ${availability ? "available" : "unavailable"}`,
+      job,
+    });
+  } catch (error) {
+    console.error("Error updating availability:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
