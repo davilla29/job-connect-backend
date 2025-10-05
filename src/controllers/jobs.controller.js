@@ -181,6 +181,11 @@ export const getJobsById = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid job ID" });
     }
+    // if (!jobId) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Job ID is required" });
+    // }
 
     const job = await Job.findById(jobId);
 
