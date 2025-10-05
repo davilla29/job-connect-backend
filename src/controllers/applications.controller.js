@@ -215,13 +215,64 @@ export const getApplicationsForJob = async (req, res) => {
   }
 };
 
+// export const updateApplicationStatus = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const loggedInCompany = req.userId;
+//     const { status } = req.body;
+
+//     // Validate status
+//     const validStatuses = ["Pending", "Reviewed", "Accepted", "Rejected"];
+//     if (!validStatuses.includes(status)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+//       });
+//     }
+
+//     // Find the application
+//     const application = await Application.findById(id).populate("job");
+//     const owner = application.job.postedBy;
+//     if (!application) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Application not found" });
+//     }
+
+//     // Check if logged in company owns posted the job
+//     if (owner.toString() !== loggedInCompany.toString()) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "You are not allowed to update this application",
+//       });
+//     }
+
+//     // Update the status
+//     application.status = status;
+//     await application.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: `Application status updated to "${status}"`,
+//       application,
+//     });
+//   } catch (error) {
+//     console.error("Error updating job application status:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to update job application status.",
+//     });
+//   }
+// };
+
+
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const loggedInCompany = req.userId;
     const { status } = req.body;
 
-    // Validate status
+    // Valid statuses
     const validStatuses = ["Pending", "Reviewed", "Accepted", "Rejected"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -232,18 +283,42 @@ export const updateApplicationStatus = async (req, res) => {
 
     // Find the application
     const application = await Application.findById(id).populate("job");
-    const owner = application.job.postedBy;
     if (!application) {
       return res
         .status(404)
         .json({ success: false, message: "Application not found" });
     }
 
-    // Check if logged in company owns posted the job
+    // Check if logged in company owns the job
+    const owner = application.job.postedBy;
     if (owner.toString() !== loggedInCompany.toString()) {
       return res.status(403).json({
         success: false,
         message: "You are not allowed to update this application",
+      });
+    }
+
+    // Enforce status workflow
+    const currentStatus = application.status;
+
+    if (currentStatus === "Pending" && status !== "Reviewed") {
+      return res.status(400).json({
+        success: false,
+        message: `Application must be moved to "Reviewed" before it can be "${status}"`,
+      });
+    }
+
+    if (currentStatus === "Reviewed" && status === "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot move application back to Pending after review",
+      });
+    }
+
+    if (currentStatus === "Accepted" || currentStatus === "Rejected") {
+      return res.status(400).json({
+        success: false,
+        message: `Application has already been ${currentStatus} and cannot be changed`,
       });
     }
 
@@ -277,20 +352,20 @@ export const updateInterviewDetails = async (req, res) => {
         .json({ success: false, message: "Application not found" });
     }
 
-    // Check if application status is "Accepted"
+    // Only accepted applications can have interview details
     if (application.status !== "Accepted") {
       return res.status(403).json({
         success: false,
         message:
-          "Interview details can only be updated if application status is 'Accepted'.",
+          "Interview details can only be updated if the application status is 'Accepted'.",
       });
     }
 
     application.interview = {
-      scheduled: scheduled ?? application.interview.scheduled,
-      date: date ?? application.interview.date,
-      location: location ?? application.interview.location,
-      notes: notes ?? application.interview.notes,
+      scheduled: scheduled ?? application.interview?.scheduled,
+      date: date ?? application.interview?.date,
+      location: location ?? application.interview?.location,
+      notes: notes ?? application.interview?.notes,
     };
 
     await application.save();
@@ -301,11 +376,55 @@ export const updateInterviewDetails = async (req, res) => {
       interview: application.interview,
     });
   } catch (error) {
+    console.error("Error updating interview details:", error);
     res
       .status(500)
       .json({ success: false, message: "Server Error", error: error.message });
   }
 };
+
+
+// export const updateInterviewDetails = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { scheduled, date, location, notes } = req.body;
+
+//     const application = await Application.findById(id).populate("job");
+//     if (!application) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Application not found" });
+//     }
+
+//     // Check if application status is "Accepted"
+//     if (application.status !== "Accepted") {
+//       return res.status(403).json({
+//         success: false,
+//         message:
+//           "Interview details can only be updated if application status is 'Accepted'.",
+//       });
+//     }
+
+//     application.interview = {
+//       scheduled: scheduled ?? application.interview.scheduled,
+//       date: date ?? application.interview.date,
+//       location: location ?? application.interview.location,
+//       notes: notes ?? application.interview.notes,
+//     };
+
+//     await application.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Interview details updated successfully",
+//       interview: application.interview,
+//     });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Server Error", error: error.message });
+//   }
+// };
 
 export const getApplicationById = async (req, res) => {
   try {
