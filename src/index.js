@@ -11,6 +11,7 @@ import applicationRoutes from "./routes/applications.route.js";
 import applicantRoutes from "./routes/applicant.route.js";
 import companyRoutes from "./routes/company.route.js";
 import exportRoutes from "./routes/export.route.js";
+import resumeRoutes from "./routes/upload.route.js";
 
 dotenv.config();
 const app = express();
@@ -39,6 +40,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/applicant", applicantRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/export", exportRoutes);
+app.use("/api", resumeRoutes);
 
 // 🛠 Debug route (temporary)
 app.get("/test-smtp", (req, res) => {
