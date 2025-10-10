@@ -1,6 +1,6 @@
 import { Job } from "../models/Job.js";
 import { Application } from "../models/Application.js";
-import { JOB_APPLICATIONS_PDF_TEMPLATE } from "../templates/jobApplicationsPdfTemplate.js";
+import { JOB_APPLICATIONS_PDF_TEMPLATE } from "../templates/pdf/jobApplicationsPdfTemplate.js";
 import { generatePDF } from "../utils/pdfGenerator.js";
 
 export const exportJobApplications = async (req, res) => {

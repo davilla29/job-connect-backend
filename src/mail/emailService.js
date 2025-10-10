@@ -87,7 +87,7 @@ import {
   WELCOME_EMAIL_TEMPLATE,
   PASSWORD_RESET_REQUEST_TEMPLATE,
   PASSWORD_RESET_SUCCESS_TEMPLATE,
-} from "./emailTemplates.js";
+} from "../templates/mail/emailTemplates.js";
 
 const senderEmail = "bolarinwadavid3@gmail.com"; // must be verified in SendGrid
 

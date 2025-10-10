@@ -220,7 +220,7 @@ export const resendCode = async (req, res) => {
     const verificationToken = generateVerificationCode();
     const hashedVerificationToken = await bcryptjs.hash(verificationToken, 10);
 
-    console.log("Verification code:", verificationToken);
+    // console.log("Verification code:", verificationToken);
 
     // Send email
     try {
@@ -304,7 +304,7 @@ export const login = async (req, res) => {
       user.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
       await user.save();
 
-      console.log(verificationToken);
+      // console.log(verificationToken);
 
       // Send verification code
       try {
@@ -350,7 +350,7 @@ export const login = async (req, res) => {
         isWelcomeEmailSent: user.isWelcomeEmailSent,
       },
     });
-    console.log(user);
+    // console.log(user);
   } catch (error) {
     console.log("Error in login ", error);
     res.status(400).json({ success: false, message: error.message });
