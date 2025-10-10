@@ -2,12 +2,11 @@
   "name": "job-connect-backend",
   "version": "1.0.0",
   "description": "Backend API for Job Connect platform, providing job listings, applications, and user management features.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
-    "postinstall": "npx playwright install"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "keywords": [
     "backend",

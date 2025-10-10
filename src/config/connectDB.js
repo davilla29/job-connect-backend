@@ -1,4 +1,3 @@
-// To allow support for local mongoDB
 import mongoose from "mongoose";
 export const connectDB = async () => {
   try {
