@@ -76,7 +76,7 @@ Create a `.env` file in the root directory:
 
 ```env
 PORT=5000
-MONGO_LOCAL_URI=mongodb://127.0.0.1:27017/{db_name like jobConnectDb}
+MONGO_LOCAL_URI=mongodb://127.0.0.1:27017/jobConnectDb
 MONGO_ATLAS_URI={online db url}
 PORT=5005 (It might be different)
 CLIENT_URL=http://localhost:5173 (It might be different)
