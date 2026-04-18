@@ -41,6 +41,7 @@
     "jsonwebtoken": "^9.0.2",
     "mailtrap": "^4.1.0",
     "mongoose": "^8.16.1",
+    "node-mailjet": "^6.0.11",
     "nodemailer": "^6.10.1",
     "pdfkit": "^0.17.2"
   },
