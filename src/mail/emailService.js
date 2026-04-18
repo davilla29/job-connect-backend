@@ -6,7 +6,6 @@ import {
   PASSWORD_RESET_SUCCESS_TEMPLATE,
 } from "../templates/mail/emailTemplates.js";
 
-
 const SENDER_NAME = "JobConnect";
 
 export const sendVerificationEmail = async (email, name, verificationToken) => {
